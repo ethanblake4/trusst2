@@ -65,6 +65,7 @@ class _ConstructAreaState extends State<ConstructArea> with SingleTickerProvider
         dragStartBehavior: DragStartBehavior.down,
         child: CustomPaint(
             painter: TrussPainter(
+                showAngles: widget.showAngles,
                 scale: scale,
                 origin: origin,
                 selectedJoint: widget.selectedJoint,
@@ -149,6 +150,17 @@ class _ConstructAreaState extends State<ConstructArea> with SingleTickerProvider
                 firstJointId = null;
                 widget.trussAdded();
               }
+            } else if (widget.ortho) {
+              var abs = (num i) => i >= 0 ? i : -i;
+              var ij = Joint.all[firstJointId];
+              // Determine whether to use vertical or horizontal snap
+              var tSlope = atan((ij.y - pos.dy) / (ij.x - pos.dx));
+              var vertical = abs(tSlope) >= (pi / 4) && (tSlope < (3 * pi) / 2);
+              var os = vertical ? Offset(ij.x, pos.dy) : Offset(pos.dx, ij.y);
+              if (widget.snapMode == SnapMode.GRID) os = snapToGrid(os);
+              Truss.joinStart(ij, os.dx, os.dy);
+              firstJointId = null;
+              widget.trussAdded();
             } else if (hit != null) {
               // Snap to joint
               Truss(firstJointId, hit.id);

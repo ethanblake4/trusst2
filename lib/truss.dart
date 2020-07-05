@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:extended_math/extended_math.dart';
 import 'package:flutter/widgets.dart';
 
 import 'joint.dart';
@@ -64,8 +65,34 @@ class Truss {
 
   double get endY => endJoint.y;
 
-  double get angle => math.atan2(endY - endX, startY - startX);
-  double get angleN => math.atan((endY - endX) / (startY - startX));
+  double get angle => math.atan2(endY - startY, endX - startX);
+  double get angleN => math.atan((endY - startY) / endX - startX);
+
+  double angleBetween(Truss other) {
+    /*if (other.startId == this.startId) {
+      return ForceCalculator.abs(other.angle - this.angle);
+    } else {
+      if (this.angle > 0) {
+        //return 9;
+        return (math.pi / 2) - ((math.pi) + (this.angle - other.angle) - (math.pi / 2));
+      }
+      return -((-math.pi / 2) + (other.angle - this.angle) - (math.pi / 2));
+    }*/
+    if (other.startId == this.startId || other.endId == this.endId) {
+      final v1 = Vector([this.endX - this.startX, this.endY - this.startY]);
+      final v2 = Vector([other.endX - other.startX, other.endY - other.startY]);
+      return acos(v1.dot(v2) /
+          (Offset(this.endX - this.startX, this.endY - this.startY).distance *
+              Offset(other.endX - other.startX, other.endY - other.startY).distance));
+    } else {
+      //return 9;
+      final v1 = Vector([this.endX - this.startX, this.endY - this.startY]);
+      final v2 = Vector([other.startX - other.endX, other.startY - other.endY]);
+      return acos(v1.dot(v2) /
+          (Offset(this.endX - this.startX, this.endY - this.startY).distance *
+              Offset(other.endX - other.startX, other.endY - other.startY).distance));
+    }
+  }
 
   double get dyDx => (endY - startY) / (endX - startX);
 

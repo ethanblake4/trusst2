@@ -74,20 +74,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  gauss_jordan:
-    dependency: "direct main"
-    description:
-      name: gauss_jordan
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.2"
-  injector:
-    dependency: transitive
-    description:
-      name: injector
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.8"
   json_annotation:
     dependency: "direct main"
     description:
@@ -109,13 +95,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.8"
-  ml_linalg:
-    dependency: "direct main"
-    description:
-      name: ml_linalg
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "12.17.1"
   path:
     dependency: transitive
     description:
@@ -130,6 +109,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.3"
+  scidart:
+    dependency: "direct main"
+    description:
+      name: scidart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.1-dev.6"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -191,12 +177,5 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.8"
-  xrange:
-    dependency: transitive
-    description:
-      name: xrange
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.8"
 sdks:
   dart: ">=2.9.0-14.0.dev <3.0.0"

@@ -1,5 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/widgets.dart';
-import 'package:gauss_jordan/gauss_jordan.dart';
+import 'package:scidart/numdart.dart';
 
 import 'joint.dart';
 import 'truss.dart';
@@ -17,16 +19,6 @@ class ForceCalculator {
       print("Debug : $debugMode");
     }
 
-    // Loop
-    var iteration = 0;
-    var complete = false;
-
-    // Current global calculation step
-    var cstep = 0;
-
-    // Timestamp for debug throttling
-    var t0 = DateTime.now().millisecondsSinceEpoch;
-
     // Reset joints
     Joint.all.values.forEach((j) {
       j.fx = null;
@@ -38,36 +30,42 @@ class ForceCalculator {
       j.tempId = null;
     });
 
-    //final allTrusses = Truss.all.values.toList();
-    // # joints x * allTrusses.length + 2
-
     var i = 0;
+
+    var ss = '';
+
+    for (final t in Truss.all.values) {
+      ss += '${t.startId}-${t.endId},   ';
+      t.tempId = i++;
+    }
+
     for (final j in Joint.all.values) {
-      if (j.type != JointType.STANDARD || j.exAmount != 0.0) {
-        j.tempId = i++;
+      if (j.type != JointType.STANDARD) {
         if (j.type == JointType.PINNED) {
+          ss += 's${j.id}y,   s${j.id}x,   ';
           j.tempIdH = i++;
+          j.tempId = i++;
+          continue;
+        }
+        if (j.type == JointType.ROLLER_H) {
+          ss += 's${j.id}x,   ';
+          j.tempIdH = i++;
+          continue;
+        }
+        if (j.type == JointType.ROLLER_V) {
+          ss += 's${j.id}y,   ';
+          j.tempId = i++;
         }
       }
     }
 
     var q = i;
-
-    for (final t in Truss.all.values) {
-      t.tempId = q++;
-      t.tempIdH = q++;
-    }
+    var debug = Random().nextInt(60) == 1;
 
     // Up = +, Right = +
     //Matrix(_data)
-    final matrixList = <List<double>>[];
-
-    // External summation vertical
-    final firstRow = List.filled(q, 0.0);
-
-    // External summation horizontal
-    final secondRow = List.filled(q, 0.0);
-
+    final forceList = <double>[];
+    final rowi = <String>[];
     final jointRows = <List<double>>[];
 
     for (final j in Joint.all.values) {
@@ -76,50 +74,60 @@ class ForceCalculator {
 
       final cTrusses = j.connectedTrusses;
       for (final trc in cTrusses) {
-        jRow[trc.tempId] = 1;
-        jRowH[trc.tempIdH] = 1;
+        final sign = trc.startId == j.id ? 1 : -1;
+        jRow[trc.tempId] = sin(trc.angle) * sign;
+        jRowH[trc.tempId] = cos(trc.angle) * sign;
       }
 
-      if (j.tempId == null) continue;
       if (j.type == JointType.STANDARD && (j.exAmount ?? 0) > 0) {
         final vr = (j.exDir == AxisDirection.up ? -1 : j.exDir == AxisDirection.down ? 1 : 0) * j.exAmount;
         final hz = (j.exDir == AxisDirection.left ? 1 : j.exDir == AxisDirection.right ? -1 : 0) * j.exAmount;
-        firstRow[j.tempId] = vr;
-        secondRow[j.tempId] = hz;
-        jRow[j.tempId] = -vr;
-        jRowH[j.tempId] = -hz;
-      } else if (j.type == JointType.ROLLER_H) {
-        firstRow[j.tempId] = 1;
-        jRow[j.tempId] = 1;
-      } else if (j.type == JointType.ROLLER_V) {
-        secondRow[j.tempId] = 1;
-        jRowH[j.tempId] = 1;
-      } else if (j.type == JointType.PINNED) {
-        firstRow[j.tempId] = 1;
-        secondRow[j.tempIdH] = 1;
-        jRow[j.tempId] = 1;
-        jRowH[j.tempIdH] = 1;
+        forceList.add(-vr);
+        forceList.add(-hz);
+      } else {
+        forceList.add(0.0);
+        forceList.add(0.0);
+        if (j.type == JointType.ROLLER_H) {
+          jRow[j.tempIdH] = 1;
+        } else if (j.type == JointType.ROLLER_V) {
+          jRowH[j.tempId] = 1;
+        } else if (j.type == JointType.PINNED) {
+          jRow[j.tempId] = 1;
+          jRowH[j.tempIdH] = 1;
+        }
       }
-      jointRows.add(jRow);
       jointRows.add(jRowH);
+      jointRows.add(jRow);
+      rowi.add('n${j.id}x');
+      rowi.add('n${j.id}y');
     }
 
-    for (final t in Truss.all.values) {
-      final tRow = List.filled(q, 0.0);
-      tRow[t.tempIdH] = 1;
-      tRow[t.tempId] = t.dyDx;
-      jointRows.add(tRow);
+    var mat = [...jointRows];
+    final mtrix = Array2d(mat.map((e) => Array(e)).toList());
+
+    final lu = LU(mtrix);
+
+    final lusolve = lu.solve(Array2d(forceList.map((f) => Array([f])).toList()));
+
+    var pmat = mat.map((e) => e.map((ea) => (ea.isNegative ? '' : ' ') + ea.toStringAsFixed(2)));
+
+    var o = 0;
+
+    if (debug) {
+      print('${mat.length} vs $q');
+      print('      ${ss}F');
+      pmat.forEach((m) {
+        print('${rowi[o]} $m ${forceList[o].isNegative ? '' : ' '}${forceList[o]}');
+        o++;
+      });
+
+      print('solved:');
+      print(lusolve
+          .toList()
+          .map((e) => e.l)
+          .reduce((value, element) => [...value.toList(), element[0]])
+          .map((e) => e.toStringAsFixed(2)));
     }
-
-    print('calculated matrix:');
-    var mat = [firstRow, secondRow, ...jointRows];
-    mat.forEach(print);
-
-    print('solved:');
-
-    final matrix = GaussJordan.solve(mat);
-    matrix.forEach(print);
-    //matrix.
 
     // Cache the All180 list of joints for each Joint, because it is slow to calculate
     /*var cachedAll180Joint = Map<int, List<Joint>>();

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:extended_math/extended_math.dart';
 import 'package:flutter/material.dart';
 
 import 'joint.dart';
@@ -7,7 +8,7 @@ import 'text_layout_cache.dart';
 import 'truss.dart';
 
 class TrussPainter extends CustomPainter {
-  const TrussPainter({this.origin, this.scale, this.selectedJoint, this.showAddTruss});
+  const TrussPainter({this.origin, this.scale, this.selectedJoint, this.showAddTruss, this.showAngles});
 
   static const double eqh = 0.86602540378;
 
@@ -24,6 +25,9 @@ class TrussPainter extends CustomPainter {
     ..strokeWidth = 3;
   static Paint trussPaint = Paint()
     ..color = Colors.deepOrange
+    ..strokeWidth = 6;
+  static Paint anglesPaint = Paint()
+    ..color = Colors.orangeAccent
     ..strokeWidth = 6;
   static Paint momentPaint = Paint()
     ..color = Colors.blueAccent
@@ -46,6 +50,7 @@ class TrussPainter extends CustomPainter {
   final double scale;
   final int selectedJoint;
   final int showAddTruss;
+  final bool showAngles;
 
   static TextPainter _addPaint1 = TextPainter(
       text: TextSpan(text: 'Select first joint position', style: TextStyle(color: Colors.white)),
@@ -93,13 +98,14 @@ class TrussPainter extends CustomPainter {
     Joint.all.values.forEach((j) {
       var pt = selectedJoint == j.id ? selPaint : trussPaint;
       var ipt = selectedJoint == j.id ? selIPaint : circleIPaint;
+      final jOffset = origin.translate(j.x * sc, -j.y * sc);
       switch (j.type) {
         case JointType.STANDARD:
           //canvas.drawRect(Rect.fromCircle(center: origin.translate(j.x * sc, -j.y * sc), radius: 10), pt);
-          canvas.drawCircle(origin.translate(j.x * sc, -j.y * sc), 10, pt);
+          canvas.drawCircle(jOffset, 10, pt);
           break;
         case JointType.PINNED:
-          canvas.drawCircle(origin.translate(j.x * sc, -j.y * sc), 10, pt);
+          canvas.drawCircle(jOffset, 10, pt);
           var inner = Path()
             ..moveTo(origin.dx + j.x * sc - 6, origin.dy - j.y * sc + 4)
             ..relativeLineTo(12, 0)
@@ -109,12 +115,28 @@ class TrussPainter extends CustomPainter {
           canvas.drawPath(inner, ipt);
           break;
         case JointType.ROLLER_H:
-          canvas.drawCircle(origin.translate(j.x * sc, -j.y * sc), 10, pt);
-          canvas.drawCircle(origin.translate(j.x * sc, -j.y * sc), 6, ipt);
+          canvas.drawCircle(jOffset, 10, pt);
+          canvas.drawCircle(jOffset + Offset(-4, 5), 1.5, ipt);
+          canvas.drawCircle(jOffset + Offset(0, 5), 1.5, ipt);
+          canvas.drawCircle(jOffset + Offset(4, 5), 1.5, ipt);
+          var inner = Path()
+            ..moveTo(origin.dx + j.x * sc - 5, origin.dy - j.y * sc + 1)
+            ..relativeLineTo(10, 0)
+            ..relativeLineTo(-5, -10 * eqh)
+            ..close();
+          canvas.drawPath(inner, ipt);
           break;
         case JointType.ROLLER_V:
-          canvas.drawCircle(origin.translate(j.x * sc, -j.y * sc), 10, pt);
-          canvas.drawCircle(origin.translate(j.x * sc, -j.y * sc), 6, ipt);
+          canvas.drawCircle(jOffset, 10, pt);
+          canvas.drawCircle(jOffset + Offset(5, -4), 1.5, ipt);
+          canvas.drawCircle(jOffset + Offset(5, 0), 1.5, ipt);
+          canvas.drawCircle(jOffset + Offset(5, 4), 1.5, ipt);
+          var inner = Path()
+            ..moveTo(origin.dx + j.x * sc + 1, origin.dy - j.y * sc - 5)
+            ..relativeLineTo(0, 10)
+            ..relativeLineTo(-10 * eqh, -5)
+            ..close();
+          canvas.drawPath(inner, ipt);
           break;
       }
 
@@ -152,6 +174,40 @@ class TrussPainter extends CustomPainter {
               style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11.0),
               text: j.exAmount.toString()));
           tp.paint(canvas, origin.translate(j.x * sc + (36 * exX), -j.y * sc + (18 * exY) - 5));
+        }
+      }
+
+      if (showAngles) {
+        final sortedCTruss = [...j.connectedTrusses];
+        sortedCTruss.sort((t1, t2) => -t1.angle.compareTo(t2.angle));
+        Truss prev;
+        //var s = (6 ~/ 3);
+
+        for (final st in sortedCTruss) {
+          //print(st);
+          if (prev != null) {
+            //if (prev.angle - st.angle < math.pi) {
+            //Joint oj1, oj2;
+            final oj1 = prev.startId == j.id ? prev.endJoint : prev.startJoint;
+            final oj2 = st.startId == j.id ? st.endJoint : st.startJoint;
+            final ang = prev.angleBetween(st);
+
+            //print('${j.x} ${oj1.x} ${oj2.x}');
+
+            //final slopeAvg =
+            var xoff = (oj1.x - j.x) / 2 + (oj2.x - j.x) / 2;
+            var yoff = (oj1.y - j.y) / 2 + (oj2.y - j.y) / 2;
+
+            final vec = Vector([xoff, yoff]);
+            final nc = (vec / ((vec.euclideanNorm() / 2 + 1 / 2))) * (.9);
+
+            var tp = textCache.getOrPerformLayout(TextSpan(
+                style: TextStyle(color: Colors.orangeAccent[700], fontWeight: FontWeight.normal, fontSize: 11.0),
+                text: (180 * (ang) / math.pi).toStringAsFixed(1)));
+            tp.paint(canvas, origin.translate(j.x * sc + nc[0] * sc - 12, -j.y * sc - nc[1] * sc - 8));
+            //}
+          }
+          prev = st;
         }
       }
 
