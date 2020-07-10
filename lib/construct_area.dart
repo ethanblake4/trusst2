@@ -15,7 +15,7 @@ class ConstructArea extends StatefulWidget {
   _ConstructAreaState createState() => _ConstructAreaState();
 
   ConstructArea(this.snapMode, this.ortho, this.showAngles, this.addTruss, this.selectedJoint, this.jointSelected,
-      this.trussAdded, this.onUpdate);
+      this.trussAdded, this.onUpdate, this.constraints);
 
   final SnapMode snapMode;
   final bool ortho;
@@ -25,6 +25,7 @@ class ConstructArea extends StatefulWidget {
   final JointCallback jointSelected;
   final VoidCallback trussAdded;
   final VoidCallback onUpdate;
+  final BoxConstraints constraints;
 }
 
 class _ConstructAreaState extends State<ConstructArea> with SingleTickerProviderStateMixin {
@@ -40,6 +41,7 @@ class _ConstructAreaState extends State<ConstructArea> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
+    scale = (widget.constraints.maxWidth / 35) + 5;
     _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 6000), upperBound: 1);
     _controller.addListener(() {
       if (_controller.value > 0)
@@ -52,7 +54,7 @@ class _ConstructAreaState extends State<ConstructArea> with SingleTickerProvider
   }
 
   Widget build(BuildContext context) {
-    scale = 18;
+    scale = (widget.constraints.maxWidth / 35) + 5;
     return Listener(
       onPointerSignal: (evt) {
         if (evt is PointerScrollEvent) {

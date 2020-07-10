@@ -140,7 +140,7 @@ class TrussPainter extends CustomPainter {
           break;
       }
 
-      if (j.exDir != null && j.exAmount != null) {
+      if (j.type == JointType.STANDARD && j.exDir != null && j.exAmount != null) {
         // draw external forces and force arrows
         var exX = j.exDir == AxisDirection.right ? 1 : j.exDir == AxisDirection.left ? -1 : 0.2;
         var exY = j.exDir == AxisDirection.down ? 1 : j.exDir == AxisDirection.up ? -1 : 0.2;

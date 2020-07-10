@@ -42,31 +42,32 @@ class ForceCalculator {
     for (final j in Joint.all.values) {
       if (j.type != JointType.STANDARD) {
         if (j.type == JointType.PINNED) {
-          ss += 's${j.id}y,   s${j.id}x,   ';
+          ss += ' s${j.id}x,    s${j.id}y,    ';
           j.tempIdH = i++;
           j.tempId = i++;
           continue;
         }
         if (j.type == JointType.ROLLER_H) {
-          ss += 's${j.id}x,   ';
+          ss += 's${j.id}y,   ';
           j.tempIdH = i++;
           continue;
         }
         if (j.type == JointType.ROLLER_V) {
-          ss += 's${j.id}y,   ';
+          ss += 's${j.id}x,   ';
           j.tempId = i++;
         }
       }
     }
 
     var q = i;
-    var debug = Random().nextInt(60) == 1;
+    var debug = Random().nextInt(30) == 1;
 
     // Up = +, Right = +
     //Matrix(_data)
     final forceList = <double>[];
     final rowi = <String>[];
     final jointRows = <List<double>>[];
+    final idList = <int>[];
 
     for (final j in Joint.all.values) {
       final jRow = List.filled(q, 0.0);
@@ -82,8 +83,8 @@ class ForceCalculator {
       if (j.type == JointType.STANDARD && (j.exAmount ?? 0) > 0) {
         final vr = (j.exDir == AxisDirection.up ? -1 : j.exDir == AxisDirection.down ? 1 : 0) * j.exAmount;
         final hz = (j.exDir == AxisDirection.left ? 1 : j.exDir == AxisDirection.right ? -1 : 0) * j.exAmount;
-        forceList.add(-vr);
-        forceList.add(-hz);
+        forceList.add(hz);
+        forceList.add(vr);
       } else {
         forceList.add(0.0);
         forceList.add(0.0);
@@ -100,14 +101,13 @@ class ForceCalculator {
       jointRows.add(jRow);
       rowi.add('n${j.id}x');
       rowi.add('n${j.id}y');
+      idList.add(j.id);
     }
 
     var mat = [...jointRows];
     final mtrix = Array2d(mat.map((e) => Array(e)).toList());
 
     final lu = LU(mtrix);
-
-    final lusolve = lu.solve(Array2d(forceList.map((f) => Array([f])).toList()));
 
     var pmat = mat.map((e) => e.map((ea) => (ea.isNegative ? '' : ' ') + ea.toStringAsFixed(2)));
 
@@ -120,7 +120,27 @@ class ForceCalculator {
         print('${rowi[o]} $m ${forceList[o].isNegative ? '' : ' '}${forceList[o]}');
         o++;
       });
+    }
 
+    final lusolve = lu.solve(Array2d(forceList.map((f) => Array([f])).toList()));
+
+    var i2 = 0;
+
+    idList.forEach((_id) {
+      // final x = lusolve[i2][0];
+      //final y = lusolve[i2 + 1][0];
+      final j = Joint.all[_id];
+      if (j.type == JointType.ROLLER_H) {
+        j.fy = lusolve[j.tempIdH][0];
+      } else if (j.type == JointType.ROLLER_V) {
+        j.fx = lusolve[j.tempId][0];
+      } else if (j.type == JointType.PINNED) {
+        j.fx = lusolve[j.tempIdH][0];
+        j.fy = lusolve[j.tempId][0];
+      }
+    });
+
+    if (debug) {
       print('solved:');
       print(lusolve
           .toList()

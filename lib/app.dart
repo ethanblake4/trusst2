@@ -34,65 +34,68 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
         ),
         elevation: 0.0,
       ),
-      body: ListView(
-        physics: const NeverScrollableScrollPhysics(),
-        children: <Widget>[
-          Padding(
+      body: LayoutBuilder(builder: (context, constraints) {
+        return ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          children: <Widget>[
+            Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  child: ClipRRect(
+                    child: ConstructArea(snapMode, ortho, showAngles, addTruss, selectedJoint, (jointId) {
+                      setState(() {
+                        selectedJoint = jointId;
+                      });
+                    },
+                        () => setState(() {
+                              ForceCalculator.calcForces();
+                            }),
+                        () => setState(() {
+                              ForceCalculator.calcForces();
+                            }),
+                        constraints),
+                    borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                  ),
+                  height: constraints.maxHeight / 1.15 - 230,
+                )),
+            Padding(
               padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                child: ClipRRect(
-                  child: ConstructArea(snapMode, ortho, showAngles, addTruss, selectedJoint, (jointId) {
-                    setState(() {
-                      selectedJoint = jointId;
-                    });
-                  },
-                      () => setState(() {
-                            ForceCalculator.calcForces();
-                          }),
-                      () => setState(() {
-                            ForceCalculator.calcForces();
-                          })),
-                  borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-                ),
-                height: 300.0,
-              )),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const Text(
-                  "Options",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  children: <Widget>[
-                    buildStateButton(snapMode == SnapMode.GRID, "Snap", Icons.crop_free, () {
-                      setState(() {
-                        if (snapMode == SnapMode.GRID)
-                          snapMode = SnapMode.NONE;
-                        else
-                          snapMode = SnapMode.GRID;
-                      });
-                    }),
-                    buildStateButton(showAngles, "Angles", Icons.threesixty, () {
-                      setState(() {
-                        showAngles = !showAngles;
-                      });
-                    }),
-                    buildStateButton(ortho, "Ortho", Icons.border_inner, () {
-                      setState(() {
-                        ortho = !ortho;
-                        if (snapMode == SnapMode.PERPENDICULAR) snapMode = SnapMode.NONE;
-                      });
-                    }),
-                  ],
-                ),
-              ]..addAll(createDynamicControlStrips(context)),
-            ),
-          )
-        ],
-      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text(
+                    "Options",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Row(
+                    children: <Widget>[
+                      buildStateButton(snapMode == SnapMode.GRID, "Snap", Icons.crop_free, () {
+                        setState(() {
+                          if (snapMode == SnapMode.GRID)
+                            snapMode = SnapMode.NONE;
+                          else
+                            snapMode = SnapMode.GRID;
+                        });
+                      }),
+                      buildStateButton(showAngles, "Angles", Icons.threesixty, () {
+                        setState(() {
+                          showAngles = !showAngles;
+                        });
+                      }),
+                      buildStateButton(ortho, "Ortho", Icons.border_inner, () {
+                        setState(() {
+                          ortho = !ortho;
+                          if (snapMode == SnapMode.PERPENDICULAR) snapMode = SnapMode.NONE;
+                        });
+                      }),
+                    ],
+                  ),
+                ]..addAll(createDynamicControlStrips(context)),
+              ),
+            )
+          ],
+        );
+      }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
@@ -157,14 +160,14 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
           scrollDirection: Axis.horizontal,
           shrinkWrap: true,
           children: <Widget>[
-            buildStateButton(j.type == JointType.STANDARD, "Joint", Icons.casino, () {
+            buildStateButton(j.type == JointType.STANDARD, "Joint", Icons.fiber_manual_record, () {
               if (j.type != JointType.STANDARD)
                 setState(() {
                   j.type = JointType.STANDARD;
                   ForceCalculator.calcForces();
                 });
             }),
-            buildStateButton(j.type == JointType.PINNED, "Pin", Icons.arrow_drop_down_circle, () {
+            buildStateButton(j.type == JointType.PINNED, "Pin", Icons.details, () {
               if (j.type != JointType.PINNED)
                 setState(() {
                   j.type = JointType.PINNED;
@@ -178,7 +181,7 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
                   ForceCalculator.calcForces();
                 });
             }),
-            buildStateButton(j.type == JointType.ROLLER_V, "Roll V", Icons.arrow_downward, () {
+            buildStateButton(j.type == JointType.ROLLER_V, "Roll V", Icons.swap_vert, () {
               if (j.type != JointType.ROLLER_V)
                 setState(() {
                   j.type = JointType.ROLLER_V;
