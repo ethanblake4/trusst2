@@ -8,6 +8,7 @@ import 'joint.dart';
 class Truss {
   static int _ids = 0;
   static Map<int, Truss> all = Map();
+
   static get maxId => _ids;
 
   static Iterable<Truss> embeddable(Joint j) => all.values.toList().where((t) {
@@ -52,6 +53,7 @@ class Truss {
   final int endId;
   int tempId;
   int tempIdH;
+  double force;
 
   Joint get startJoint => Joint.all[startId];
 
@@ -66,7 +68,10 @@ class Truss {
   double get endY => endJoint.y;
 
   double get angle => math.atan2(endY - startY, endX - startX);
+
   double get angleN => math.atan((endY - startY) / endX - startX);
+
+  double angleFrom(Joint j) => startId == j.id ? angle : math.atan2(startY - endY, startX - endX);
 
   double angleBetween(Truss other) {
     /*if (other.startId == this.startId) {

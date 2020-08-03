@@ -102,7 +102,7 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
             addTruss = !addTruss;
           });
         },
-        tooltip: 'Increment',
+        tooltip: 'Add truss',
         child: Icon(addTruss ? Icons.check : Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
@@ -226,29 +226,29 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
                   ForceCalculator.calcForces();
                 });
               }, Colors.blueGrey),
-              buildStateButton(
-                  Joint.hitTestMultiple(j.x, j.y, 0.5).where((o) => o.id != j.id).length > 0, "Merge", Icons.merge_type,
-                  () {
-                setState(() {
-                  Joint.hitTestMultiple(j.x, j.y, 0.5).where((o) => o.id != j.id).toList().forEach((o) {
-                    o.connectedTrusses.forEach((truss) {
-                      truss.delete();
-                      if (truss.startId == o.id)
-                        Truss(j.id, truss.endId);
-                      else
-                        Truss(truss.startId, j.id);
+              if (Joint.hitTestMultiple(j.x, j.y, 0.5).where((o) => o.id != j.id).length > 0)
+                buildStateButton(true, "Merge", Icons.merge_type, () {
+                  setState(() {
+                    Joint.hitTestMultiple(j.x, j.y, 0.5).where((o) => o.id != j.id).toList().forEach((o) {
+                      o.connectedTrusses.forEach((truss) {
+                        truss.delete();
+                        if (truss.startId == o.id)
+                          Truss(j.id, truss.endId);
+                        else
+                          Truss(truss.startId, j.id);
+                      });
+                      o.delete();
                     });
-                    o.delete();
+                    ForceCalculator.calcForces();
                   });
-                  ForceCalculator.calcForces();
-                });
-              }, Colors.deepOrange),
-              buildStateButton(Truss.embeddable(j).length > 0, "Embed", Icons.keyboard_tab, () {
-                setState(() {
-                  Truss.embed(j);
-                  ForceCalculator.calcForces();
-                });
-              }, Colors.deepOrange),
+                }, Colors.blue),
+              if (Truss.embeddable(j).length > 0)
+                buildStateButton(true, "Embed", Icons.keyboard_tab, () {
+                  setState(() {
+                    Truss.embed(j);
+                    ForceCalculator.calcForces();
+                  });
+                }, Colors.orangeAccent),
               buildStateButton(true, "Coords", Icons.place, () async {
                 Offset o = await showDialog(context: context, builder: (context) => CoordsDialog(selectedJoint));
                 if (o != null)

@@ -109,8 +109,11 @@ class ForceCalculator {
 
     final lu = LU(mtrix);
 
-    var pmat = mat.map((e) => e.map((ea) => (ea.isNegative ? '' : ' ') + ea.toStringAsFixed(2)));
+    var pmat = mat.map((e) => e.map((ea) => (ea.isNegative ? '' : ' ') + ea.toStringAsFixed(6)));
 
+    //print('det: ${lu.det()}');
+    //if(lu.det() < )
+    //lu.det();
     var o = 0;
 
     if (debug) {
@@ -140,13 +143,17 @@ class ForceCalculator {
       }
     });
 
+    Truss.all.values.forEach((t) {
+      t.force = lusolve[t.tempId][0];
+    });
+
     if (debug) {
       print('solved:');
       print(lusolve
           .toList()
           .map((e) => e.l)
           .reduce((value, element) => [...value.toList(), element[0]])
-          .map((e) => e.toStringAsFixed(2)));
+          .map((e) => e.toStringAsFixed(6)));
     }
 
     // Cache the All180 list of joints for each Joint, because it is slow to calculate

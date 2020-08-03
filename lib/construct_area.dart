@@ -71,6 +71,8 @@ class _ConstructAreaState extends State<ConstructArea> with SingleTickerProvider
                 scale: scale,
                 origin: origin,
                 selectedJoint: widget.selectedJoint,
+                firstAddJoint: Joint.all[firstJointId],
+                showOrtho: widget.ortho,
                 showAddTruss: widget.addTruss ? (firstJointId == null ? 1 : 2) : 0)),
         onTapUp: (tap) {
           var pos = findGridPos(context, tap.globalPosition);
