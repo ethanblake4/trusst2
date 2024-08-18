@@ -9,17 +9,22 @@ class Joint {
   static Map<int, Joint> all = Map();
   static int globalCalcStep = 0;
 
-  static Joint hitTestAll(double dx, double dy, double radius) =>
-      all.values.toList().reversed.firstWhere((j) => j.hitTest(dx, dy, 0.5), orElse: () => null);
+  static Joint? hitTestAll(double dx, double dy, double radius) => all.values
+      .toList()
+      .cast()
+      .reversed
+      .firstWhere((j) => j.hitTest(dx, dy, 0.5), orElse: () => null);
 
-  static Joint hitTestAllOffset(Offset d, double radius) => hitTestAll(d.dx, d.dy, radius);
+  static Joint? hitTestAllOffset(Offset d, double radius) =>
+      hitTestAll(d.dx, d.dy, radius);
 
   static Iterable<Joint> hitTestMultiple(double dx, double dy, double radius) =>
       all.values.where((j) => j.hitTest(dx, dy, 0.5));
 
-  static Iterable<Joint> hitTestMultipleOffset(Offset d, double radius) => hitTestMultiple(d.dx, d.dy, radius);
+  static Iterable<Joint> hitTestMultipleOffset(Offset d, double radius) =>
+      hitTestMultiple(d.dx, d.dy, radius);
 
-  factory Joint(double x, double y, JointType type, [int id]) {
+  factory Joint(double x, double y, JointType type, [int? id]) {
     var pin = Joint._(x, y, type, id ?? lastId++);
     all[pin.id] = pin;
     return pin;
@@ -30,26 +35,27 @@ class Joint {
   double x;
   double y;
   int id;
-  int tempId;
-  int tempIdH;
+  int? tempId;
+  int? tempIdH;
   JointType type;
-  AxisDirection exDir;
-  double exAmount;
+  AxisDirection? exDir;
+  double? exAmount;
   int calcStep = 0;
   int rCalcStep = 0;
   int fCalcStep = 0;
   int fCalcStep2 = 0;
-  double moment;
+  double? moment;
   double reactionForce = 0;
   double reactionAngle = 0;
   int sumaround = 0;
   int codepath = 0;
-  double fx;
-  double fy;
+  double? fx;
+  double? fy;
   int trussCacheKey = -1;
-  List<Truss> cachedConnectedTruss;
+  List<Truss> cachedConnectedTruss = [];
 
-  Iterable<Truss> get _connectedFast => Truss.all.values.where((t) => t.startId == id || t.endId == id);
+  Iterable<Truss> get _connectedFast =>
+      Truss.all.values.where((t) => t.startId == id || t.endId == id);
 
   List<Truss> get connectedTrusses {
     if (Truss.maxId == trussCacheKey) {
@@ -61,7 +67,11 @@ class Joint {
 
   double get forceAngle => exDir == AxisDirection.right
       ? 0
-      : exDir == AxisDirection.up ? math.pi / 2.0 : exDir == AxisDirection.left ? math.pi : math.pi * (3.0 / 2.0);
+      : exDir == AxisDirection.up
+          ? math.pi / 2.0
+          : exDir == AxisDirection.left
+              ? math.pi
+              : math.pi * (3.0 / 2.0);
 
   static num abs(num x) => x < 0 ? -x : x;
 
@@ -78,10 +88,12 @@ class Joint {
     var p;
     if (exDir == AxisDirection.right || exDir == AxisDirection.left) {
       // If horizontal, force is the sine of the angle * force amount
-      p = (exAmount ?? 0) * math.sin(angle) + (reactionForce * math.sin(reactionAngle));
+      p = (exAmount ?? 0) * math.sin(angle) +
+          (reactionForce * math.sin(reactionAngle));
     } else {
       // If vertical, force is the sine of the angle * (force amount - 90 degrees)
-      p = (exAmount ?? 0) * math.sin(angle - math.pi / 2) + (reactionForce * math.sin(reactionAngle - math.pi / 2));
+      p = (exAmount ?? 0) * math.sin(angle - math.pi / 2) +
+          (reactionForce * math.sin(reactionAngle - math.pi / 2));
     }
     // Calculate sign based on Kiera's chart
     var sign;
@@ -109,7 +121,10 @@ class Joint {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Joint && runtimeType == other.runtimeType && id == other.id && type == other.type;
+      other is Joint &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          type == other.type;
 
   @override
   int get hashCode => id.hashCode;

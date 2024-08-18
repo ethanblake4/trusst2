@@ -20,8 +20,11 @@ class _ForceDialogState extends State<ForceDialog> {
         ? 0
         : widget.initialForce.direction == AxisDirection.up
             ? 1
-            : widget.initialForce.direction == AxisDirection.left ? 2 : 3;
-    if (widget.initialForce.intensity != null) _textfield.text = widget.initialForce.intensity.toString();
+            : widget.initialForce.direction == AxisDirection.left
+                ? 2
+                : 3;
+    if (widget.initialForce.intensity != null)
+      _textfield.text = widget.initialForce.intensity.toString();
   }
 
   @override
@@ -128,18 +131,23 @@ class _ForceDialogState extends State<ForceDialog> {
               child: TextField(
                 controller: _textfield,
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(border: OutlineInputBorder(), hintText: "Value"),
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(), hintText: "Value"),
               ),
             ),
             Align(
               alignment: Alignment.bottomRight,
-              child: FlatButton(
+              child: TextButton(
                   onPressed: () {
                     Navigator.of(context).pop(Force(
                         exFdir == 0
                             ? AxisDirection.down
-                            : exFdir == 1 ? AxisDirection.up : exFdir == 2 ? AxisDirection.left : AxisDirection.right,
-                        double.tryParse(_textfield.text)));
+                            : exFdir == 1
+                                ? AxisDirection.up
+                                : exFdir == 2
+                                    ? AxisDirection.left
+                                    : AxisDirection.right,
+                        double.tryParse(_textfield.text) ?? 0));
                   },
                   child: Text("OK")),
             )

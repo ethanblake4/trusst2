@@ -1,10 +1,11 @@
 name: trusst
+publish_to: none
 description: An app for calculating trusses
 
-version: 1.0.0+1
+version: 1.2.0
 
 environment:
-  sdk: ">=2.8.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -12,11 +13,26 @@ dependencies:
   quiver:
   scidart:
   extended_math:
-  json_annotation: ^2.0.0
+    git:
+      url: https://github.com/tauu/extended_math.git
+      ref: dart3
+  json_annotation: ^4.8.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^0.1.2
+  cupertino_icons: ^1.0.6
+  icons_launcher: ^2.1.0
+
+icons_launcher:
+  image_path: "assets/Trusst-Icon.png"
+  platforms:
+    android:
+      enable: true
+      adaptive_background_image: "assets/Trusst-Icon-Background.png"
+      adaptive_foreground_image: "assets/Trusst-Icon-Foreground.png"
+      adaptive_monochrome_image: "assets/Trusst-Icon-Mono.png"
+    ios:
+      enable: true
 
 
 dev_dependencies:

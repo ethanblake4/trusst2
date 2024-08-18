@@ -10,12 +10,12 @@ import 'truss.dart';
 
 class TrussPainter extends CustomPainter {
   TrussPainter(
-      {this.origin,
-      this.scale,
+      {required this.origin,
+      required this.scale,
       this.selectedJoint,
-      this.showAddTruss,
-      this.showAngles,
-      this.showOrtho,
+      required this.showAddTruss,
+      required this.showAngles,
+      required this.showOrtho,
       this.firstAddJoint});
 
   static const double eqh = 0.86602540378;
@@ -32,7 +32,7 @@ class TrussPainter extends CustomPainter {
     ..color = const Color(0xFFCCCCCC)
     ..strokeWidth = 3;
   Paint trussPaint = Paint()
-    ..color = Colors.deepOrange[400]
+    ..color = Colors.deepOrange[400]!
     ..strokeWidth = 6;
   static Paint anglesPaint = Paint()
     ..color = Colors.orangeAccent
@@ -41,17 +41,17 @@ class TrussPainter extends CustomPainter {
     ..color = Colors.blueAccent
     ..strokeWidth = 6;
   Paint ppfPain = Paint()
-    ..color = Colors.purpleAccent[700]
+    ..color = Colors.purpleAccent[700]!
     ..strokeWidth = 2;
-  Paint compressPaint = Paint()..color = Colors.deepOrange[600];
-  Paint tensionPaint = Paint()..color = Colors.deepOrange[300];
+  Paint compressPaint = Paint()..color = Colors.deepOrange[600]!;
+  Paint tensionPaint = Paint()..color = Colors.deepOrange[300]!;
   static Paint selPaint = Paint()
     ..color = Colors.lightGreen
     ..strokeWidth = 6;
   static Paint selIPaint = Paint()
     ..color = Colors.lightGreenAccent
     ..strokeWidth = 6;
-  static Paint circleIPaint = Paint()..color = Colors.orange[100];
+  static Paint circleIPaint = Paint()..color = Colors.orange[100]!;
   final Paint exPaint = Paint()
     ..color = Colors.black
     ..strokeWidth = 2;
@@ -61,19 +61,23 @@ class TrussPainter extends CustomPainter {
 
   final Offset origin;
   final double scale;
-  final int selectedJoint;
+  final int? selectedJoint;
   final int showAddTruss;
   final bool showAngles;
   final bool showOrtho;
-  final Joint firstAddJoint;
+  final Joint? firstAddJoint;
 
   static TextPainter _addPaint1 = TextPainter(
-      text: TextSpan(text: 'Select first joint position', style: TextStyle(color: Colors.white)),
+      text: TextSpan(
+          text: 'Select first joint position',
+          style: TextStyle(color: Colors.white)),
       textAlign: TextAlign.left)
     ..textDirection = TextDirection.ltr
     ..layout();
   static TextPainter _addPaint2 = TextPainter(
-      text: TextSpan(text: 'Select second joint position', style: TextStyle(color: Colors.white)),
+      text: TextSpan(
+          text: 'Select second joint position',
+          style: TextStyle(color: Colors.white)),
       textAlign: TextAlign.left)
     ..textDirection = TextDirection.ltr
     ..layout();
@@ -87,36 +91,45 @@ class TrussPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final t = DateTime.now().millisecondsSinceEpoch;
     var sc = (size.width ~/ scale);
+    print('scale: $scale, sc: $sc');
 
     // Background
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), background);
 
     // X-Axis
-    canvas.drawLine(Offset(0, origin.dy), Offset(size.width, origin.dy), axesPaint);
+    canvas.drawLine(
+        Offset(0, origin.dy), Offset(size.width, origin.dy), axesPaint);
     // Y-Axis
-    canvas.drawLine(Offset(origin.dx, 0), Offset(origin.dx, size.height), axesPaint);
+    canvas.drawLine(
+        Offset(origin.dx, 0), Offset(origin.dx, size.height), axesPaint);
 
     // X-Grid
     for (var i = origin.dx.toInt() % sc; i < size.width; i += sc) {
-      canvas.drawLine(Offset(i.toDouble(), 0), Offset(i.toDouble(), size.height), gridPaint);
+      canvas.drawLine(Offset(i.toDouble(), 0),
+          Offset(i.toDouble(), size.height), gridPaint);
     }
     // Y-Grid
     for (var i = origin.dy.toInt() % sc; i < size.height; i += sc) {
-      canvas.drawLine(Offset(0, i.toDouble()), Offset(size.width, i.toDouble()), gridPaint);
+      canvas.drawLine(
+          Offset(0, i.toDouble()), Offset(size.width, i.toDouble()), gridPaint);
     }
 
     if (showOrtho && showAddTruss == 2 && firstAddJoint != null) {
       // hz line
       var off = 0.0;
       while (off < size.width) {
-        canvas.drawLine(origin.translate(off - origin.dx, -firstAddJoint.y * sc - .5),
-            origin.translate(off + 6 - origin.dx, -firstAddJoint.y * sc - .5), dashPaint);
+        canvas.drawLine(
+            origin.translate(off - origin.dx, -firstAddJoint!.y * sc - .5),
+            origin.translate(off + 6 - origin.dx, -firstAddJoint!.y * sc - .5),
+            dashPaint);
         off += 9;
       }
       off = 0.0;
       while (off < size.height) {
-        canvas.drawLine(origin.translate(firstAddJoint.x * sc - 1, off - origin.dy),
-            origin.translate(firstAddJoint.x * sc - 1, off + 6 - origin.dy), dashPaint);
+        canvas.drawLine(
+            origin.translate(firstAddJoint!.x * sc - 1, off - origin.dy),
+            origin.translate(firstAddJoint!.x * sc - 1, off + 6 - origin.dy),
+            dashPaint);
         off += 9;
       }
     }
@@ -125,23 +138,31 @@ class TrussPainter extends CustomPainter {
     Truss.all.values.forEach((Truss truss) {
       canvas.drawLine(origin.translate(truss.startX * sc, -truss.startY * sc),
           origin.translate(truss.endX * sc, -truss.endY * sc), trussPaint);
-      if (truss.force != null && ForceCalculator.abs(truss.force) > 0.001) {
-        final ftext = truss.force < 0
-            ? '\u2192${(-truss.force).toStringAsFixed(1)}\u2190'
-            : '\u2190${truss.force.toStringAsFixed(1)}\u2192';
-        var tp = textCache.getOrPerformLayout(
-            TextSpan(style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.0), text: ftext));
+      if (truss.force != null && ForceCalculator.abs(truss.force!) > 0.001) {
+        final ftext = truss.force! < 0
+            ? '\u2192${(-truss.force!).toStringAsFixed(1)}\u2190'
+            : '\u2190${truss.force!.toStringAsFixed(1)}\u2192';
+        var tp = textCache.getOrPerformLayout(TextSpan(
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 11.0),
+            text: ftext));
 
         canvas.save();
-        canvas.translate(
-            origin.dx + (truss.startX + truss.endX) * sc / 2, origin.dy - (truss.startY + truss.endY) * sc / 2);
+        canvas.translate(origin.dx + (truss.startX + truss.endX) * sc / 2,
+            origin.dy - (truss.startY + truss.endY) * sc / 2);
         final tAngle = (truss.angle > math.pi / 2 || truss.angle < -math.pi / 2)
-            ? (truss.angle < math.pi ? -math.pi + truss.angle : math.pi + truss.angle)
+            ? (truss.angle < math.pi
+                ? -math.pi + truss.angle
+                : math.pi + truss.angle)
             : truss.angle;
         canvas.rotate(-tAngle);
         canvas.translate(-tp.width / 2, -tp.height / 2);
-        canvas.drawRRect(RRect.fromLTRBR(-2, -1, tp.width + 2, tp.height + 2, Radius.circular(2)),
-            truss.force < 0 ? compressPaint : tensionPaint);
+        canvas.drawRRect(
+            RRect.fromLTRBR(
+                -2, -1, tp.width + 2, tp.height + 2, Radius.circular(2)),
+            truss.force! < 0 ? compressPaint : tensionPaint);
 
         tp.paint(canvas, Offset.zero);
         canvas.restore();
@@ -203,7 +224,8 @@ class TrussPainter extends CustomPainter {
 
       if (showAngles) {
         final sortedCTruss = [...j.connectedTrusses];
-        sortedCTruss.sort((t1, t2) => -t1.angleFrom(j).compareTo(t2.angleFrom(j)));
+        sortedCTruss
+            .sort((t1, t2) => -t1.angleFrom(j).compareTo(t2.angleFrom(j)));
         if (sortedCTruss.length > 2) {
           sortedCTruss.add(sortedCTruss[0]);
         }
@@ -214,13 +236,8 @@ class TrussPainter extends CustomPainter {
         var anglist = anglelist(sortedCTruss);
         var angmax = anglemax(anglist);
         var angsum = anglesum(anglist);
-        print(sortedCTruss);
         for (final st in sortedCTruss) {
-          print("The Anhle:");
-          print(st);
-          print(prev);
           if (prev == st) {
-            print("p=s skip");
             prev = st;
             continue;
           }
@@ -265,10 +282,15 @@ class TrussPainter extends CustomPainter {
             l = 1.5;
           }
           var tp = textCache.getOrPerformLayout(TextSpan(
-              style: TextStyle(color: Colors.orangeAccent[700], fontWeight: FontWeight.normal, fontSize: 11.0),
+              style: TextStyle(
+                  color: Colors.orangeAccent[700],
+                  fontWeight: FontWeight.normal,
+                  fontSize: 11.0),
               text: (180 * (ang) / math.pi).toStringAsFixed(0)));
-          tp.paint(canvas,
-              origin.translate(j.x * sc + xoff * sc / l - tp.width / 2, -j.y * sc - yoff * sc / l - tp.height / 2));
+          tp.paint(
+              canvas,
+              origin.translate(j.x * sc + xoff * sc / l - tp.width / 2,
+                  -j.y * sc - yoff * sc / l - tp.height / 2));
           //}
           prev = st;
         }
@@ -285,103 +307,198 @@ class TrussPainter extends CustomPainter {
         var angleF = (t.angle + (t.startJoint.id == j.id ? math.pi : 0));
         if (angleF < 0) angleF = 2 * math.pi + angleF;
         if (angleF > 0 && angleF < math.pi) {
-          quadrantOccupacity[0] = math.max(quadrantOccupacity[0],
-              -1 + math.exp(2 * (math.pi / 2 - ForceCalculator.abs(angleF - math.pi / 2)) / (math.pi)));
+          quadrantOccupacity[0] = math.max(
+              quadrantOccupacity[0],
+              -1 +
+                  math.exp(2 *
+                      (math.pi / 2 -
+                          ForceCalculator.abs(angleF - math.pi / 2)) /
+                      (math.pi)));
         }
         if (angleF > math.pi / 2 && angleF < 3 * math.pi / 2) {
-          quadrantOccupacity[1] = math.max(quadrantOccupacity[1],
-              -1 + math.exp(2 * (math.pi / 2 - ForceCalculator.abs(angleF - math.pi)) / (math.pi)));
+          quadrantOccupacity[1] = math.max(
+              quadrantOccupacity[1],
+              -1 +
+                  math.exp(2 *
+                      (math.pi / 2 - ForceCalculator.abs(angleF - math.pi)) /
+                      (math.pi)));
         }
         if (angleF > math.pi && angleF < 2 * math.pi) {
-          quadrantOccupacity[2] = math.max(quadrantOccupacity[2],
-              -1 + math.exp(2 * (math.pi / 2 - ForceCalculator.abs(angleF - 3 * math.pi / 2)) / (math.pi)));
+          quadrantOccupacity[2] = math.max(
+              quadrantOccupacity[2],
+              -1 +
+                  math.exp(2 *
+                      (math.pi / 2 -
+                          ForceCalculator.abs(angleF - 3 * math.pi / 2)) /
+                      (math.pi)));
         }
         if (angleF > 3 * math.pi / 2) {
-          quadrantOccupacity[3] = math.max(quadrantOccupacity[3],
-              -1 + math.exp(2 * (math.pi / 2 - ForceCalculator.abs(angleF - 2 * math.pi)) / (math.pi)));
+          quadrantOccupacity[3] = math.max(
+              quadrantOccupacity[3],
+              -1 +
+                  math.exp(2 *
+                      (math.pi / 2 -
+                          ForceCalculator.abs(angleF - 2 * math.pi)) /
+                      (math.pi)));
         } else if (angleF < math.pi / 2) {
           quadrantOccupacity[3] = math.max(
-              quadrantOccupacity[3], -1 + math.exp(2 * (math.pi / 2 - ForceCalculator.abs(angleF)) / (math.pi)));
+              quadrantOccupacity[3],
+              -1 +
+                  math.exp(2 *
+                      (math.pi / 2 - ForceCalculator.abs(angleF)) /
+                      (math.pi)));
         }
       }
 
-      if (j.type == JointType.STANDARD && j.exDir != null && j.exAmount != null) {
+      if (j.type == JointType.STANDARD &&
+          j.exDir != null &&
+          j.exAmount != null) {
         // draw external forces and force arrows
-        var exX = j.exDir == AxisDirection.right ? 1 : j.exDir == AxisDirection.left ? -1 : 0.2;
-        var exY = j.exDir == AxisDirection.down ? 1 : j.exDir == AxisDirection.up ? -1 : 0.2;
+        var exX = j.exDir == AxisDirection.right
+            ? 1
+            : j.exDir == AxisDirection.left
+                ? -1
+                : 0.2;
+        var exY = j.exDir == AxisDirection.down
+            ? 1
+            : j.exDir == AxisDirection.up
+                ? -1
+                : 0.2;
 
         if (j.exDir == AxisDirection.left || j.exDir == AxisDirection.right) {
-          final tlh = (exX == 1) != (((quadrantOccupacity[3] - quadrantOccupacity[1])) > 0) ? -exX * 42 : 0;
+          final tlh = (exX == 1) !=
+                  (((quadrantOccupacity[3] - quadrantOccupacity[1])) > 0)
+              ? -exX * 42
+              : 0;
           canvas.drawRRect(
               RRect.fromRectAndRadius(
-                  Rect.fromPoints(origin.translate(j.x * sc + (12 * exX) + tlh, -j.y * sc - (6 * exY)),
-                      origin.translate(j.x * sc + (28 * exX) + tlh, -j.y * sc + (6 * exY))),
+                  Rect.fromPoints(
+                      origin.translate(
+                          j.x * sc + (12 * exX) + tlh, -j.y * sc - (6 * exY)),
+                      origin.translate(
+                          j.x * sc + (28 * exX) + tlh, -j.y * sc + (6 * exY))),
                   Radius.circular(2)),
               exPaint);
-          canvas.drawLine(origin.translate(j.x * sc + (28 * exX) + tlh, -j.y * sc),
-              origin.translate(j.x * sc + (22 * exX) + tlh, -j.y * sc - 5), exPaint);
-          canvas.drawLine(origin.translate(j.x * sc + (28 * exX) + tlh, -j.y * sc),
-              origin.translate(j.x * sc + (22 * exX) + tlh, -j.y * sc + 5), exPaint);
+          canvas.drawLine(
+              origin.translate(j.x * sc + (28 * exX) + tlh, -j.y * sc),
+              origin.translate(j.x * sc + (22 * exX) + tlh, -j.y * sc - 5),
+              exPaint);
+          canvas.drawLine(
+              origin.translate(j.x * sc + (28 * exX) + tlh, -j.y * sc),
+              origin.translate(j.x * sc + (22 * exX) + tlh, -j.y * sc + 5),
+              exPaint);
           var tp = textCache.getOrPerformLayout(TextSpan(
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11.0),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11.0),
               text: j.exAmount.toString()));
-          tp.paint(canvas, origin.translate(j.x * sc + (20 * exX) + tlh - tp.width / 2, -j.y * sc + (22 * exY)));
+          tp.paint(
+              canvas,
+              origin.translate(j.x * sc + (20 * exX) + tlh - tp.width / 2,
+                  -j.y * sc + (22 * exY)));
         } else {
-          final tlv = (exY == 1) != (((quadrantOccupacity[2] - quadrantOccupacity[0])) > 0) ? -exY * 42 : 0;
+          final tlv = (exY == 1) !=
+                  (((quadrantOccupacity[2] - quadrantOccupacity[0])) > 0)
+              ? -exY * 42
+              : 0;
           canvas.drawRRect(
               RRect.fromRectAndRadius(
-                  Rect.fromPoints(origin.translate(j.x * sc - (6 * exX), -j.y * sc + (12 * exY) + tlv),
-                      origin.translate(j.x * sc + (6 * exX), -j.y * sc + (28 * exY) + tlv)),
+                  Rect.fromPoints(
+                      origin.translate(
+                          j.x * sc - (6 * exX), -j.y * sc + (12 * exY) + tlv),
+                      origin.translate(
+                          j.x * sc + (6 * exX), -j.y * sc + (28 * exY) + tlv)),
                   Radius.circular(2)),
               exPaint);
-          canvas.drawLine(origin.translate(j.x * sc, -j.y * sc + (28 * exY) + tlv),
-              origin.translate(j.x * sc - 5, -j.y * sc + (22 * exY) + tlv), exPaint);
-          canvas.drawLine(origin.translate(j.x * sc, -j.y * sc + (28 * exY) + tlv),
-              origin.translate(j.x * sc + 5, -j.y * sc + (22 * exY) + tlv), exPaint);
+          canvas.drawLine(
+              origin.translate(j.x * sc, -j.y * sc + (28 * exY) + tlv),
+              origin.translate(j.x * sc - 5, -j.y * sc + (22 * exY) + tlv),
+              exPaint);
+          canvas.drawLine(
+              origin.translate(j.x * sc, -j.y * sc + (28 * exY) + tlv),
+              origin.translate(j.x * sc + 5, -j.y * sc + (22 * exY) + tlv),
+              exPaint);
           var tp = textCache.getOrPerformLayout(TextSpan(
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11.0),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11.0),
               text: j.exAmount.toString()));
-          tp.paint(canvas, origin.translate(j.x * sc + (36 * exX), -j.y * sc + (18 * exY) - 5 + tlv));
+          tp.paint(
+              canvas,
+              origin.translate(
+                  j.x * sc + (36 * exX), -j.y * sc + (18 * exY) - 5 + tlv));
         }
       }
 
       //var exY = j.exDir == AxisDirection.down ? 1 : j.exDir == AxisDirection.up ? -1 : 0.2;
-      if (j.fx != null && j.fx.abs() > 0.00000001) {
-        var rxX = j.fx > 0 ? 1 : -1;
-        final tlh = (rxX == 1) != (((quadrantOccupacity[3] - quadrantOccupacity[1])) > 0) ? -rxX * 42 : 0;
+      if (j.fx != null && j.fx!.abs() > 0.00000001) {
+        var rxX = j.fx! > 0 ? 1 : -1;
+        final tlh = (rxX == 1) !=
+                (((quadrantOccupacity[3] - quadrantOccupacity[1])) > 0)
+            ? -rxX * 42
+            : 0;
         canvas.drawRRect(
             RRect.fromRectAndRadius(
-                Rect.fromPoints(origin.translate(j.x * sc + (12 * rxX) + tlh, -j.y * sc - 1.2),
-                    origin.translate(j.x * sc + (28 * rxX) + tlh, -j.y * sc + 1.2)),
+                Rect.fromPoints(
+                    origin.translate(
+                        j.x * sc + (12 * rxX) + tlh, -j.y * sc - 1.2),
+                    origin.translate(
+                        j.x * sc + (28 * rxX) + tlh, -j.y * sc + 1.2)),
                 Radius.circular(2)),
             ppfPain);
-        canvas.drawLine(origin.translate(j.x * sc + (28 * rxX) + tlh, -j.y * sc),
-            origin.translate(j.x * sc + (22 * rxX) + tlh, -j.y * sc - 5), ppfPain);
-        canvas.drawLine(origin.translate(j.x * sc + (28 * rxX) + tlh, -j.y * sc),
-            origin.translate(j.x * sc + (22 * rxX) + tlh, -j.y * sc + 5), ppfPain);
+        canvas.drawLine(
+            origin.translate(j.x * sc + (28 * rxX) + tlh, -j.y * sc),
+            origin.translate(j.x * sc + (22 * rxX) + tlh, -j.y * sc - 5),
+            ppfPain);
+        canvas.drawLine(
+            origin.translate(j.x * sc + (28 * rxX) + tlh, -j.y * sc),
+            origin.translate(j.x * sc + (22 * rxX) + tlh, -j.y * sc + 5),
+            ppfPain);
         var tp = textCache.getOrPerformLayout(TextSpan(
-            style: TextStyle(color: Colors.purpleAccent[700], fontWeight: FontWeight.bold, fontSize: 11.0),
-            text: ForceCalculator.abs(j.fx).toStringAsFixed(1)));
-        tp.paint(canvas, origin.translate(j.x * sc + (20 * rxX) + tlh - tp.width / 2, -j.y * sc + (22 * .2)));
+            style: TextStyle(
+                color: Colors.purpleAccent[700],
+                fontWeight: FontWeight.bold,
+                fontSize: 11.0),
+            text: ForceCalculator.abs(j.fx!).toStringAsFixed(1)));
+        tp.paint(
+            canvas,
+            origin.translate(j.x * sc + (20 * rxX) + tlh - tp.width / 2,
+                -j.y * sc + (22 * .2)));
       }
 
-      if (j.fy != null && j.fy.abs() > 0.00000001) {
-        var rxY = j.fy > 0 ? -1 : 1;
-        final tlv = (rxY == 1) != (((quadrantOccupacity[2] - quadrantOccupacity[0])) > 0) ? -rxY * 42 : 0;
+      if (j.fy != null && j.fy!.abs() > 0.00000001) {
+        var rxY = j.fy! > 0 ? -1 : 1;
+        final tlv = (rxY == 1) !=
+                (((quadrantOccupacity[2] - quadrantOccupacity[0])) > 0)
+            ? -rxY * 42
+            : 0;
         canvas.drawRRect(
             RRect.fromRectAndRadius(
-                Rect.fromPoints(origin.translate(j.x * sc - 1.2, -j.y * sc + (12 * rxY) + tlv),
-                    origin.translate(j.x * sc + 1.2, -j.y * sc + (28 * rxY) + tlv)),
+                Rect.fromPoints(
+                    origin.translate(
+                        j.x * sc - 1.2, -j.y * sc + (12 * rxY) + tlv),
+                    origin.translate(
+                        j.x * sc + 1.2, -j.y * sc + (28 * rxY) + tlv)),
                 Radius.circular(2)),
             ppfPain);
-        canvas.drawLine(origin.translate(j.x * sc, -j.y * sc + (28 * rxY) + tlv),
-            origin.translate(j.x * sc - 5, -j.y * sc + (22 * rxY) + tlv), ppfPain);
-        canvas.drawLine(origin.translate(j.x * sc, -j.y * sc + (28 * rxY) + tlv),
-            origin.translate(j.x * sc + 5, -j.y * sc + (22 * rxY) + tlv), ppfPain);
+        canvas.drawLine(
+            origin.translate(j.x * sc, -j.y * sc + (28 * rxY) + tlv),
+            origin.translate(j.x * sc - 5, -j.y * sc + (22 * rxY) + tlv),
+            ppfPain);
+        canvas.drawLine(
+            origin.translate(j.x * sc, -j.y * sc + (28 * rxY) + tlv),
+            origin.translate(j.x * sc + 5, -j.y * sc + (22 * rxY) + tlv),
+            ppfPain);
         var tp = textCache.getOrPerformLayout(TextSpan(
-            style: TextStyle(color: Colors.purpleAccent[700], fontWeight: FontWeight.bold, fontSize: 11.0),
-            text: ForceCalculator.abs(j.fy).toStringAsFixed(2)));
-        tp.paint(canvas, origin.translate(j.x * sc + 7.2, -j.y * sc + (18 * rxY) - 5 + tlv));
+            style: TextStyle(
+                color: Colors.purpleAccent[700],
+                fontWeight: FontWeight.bold,
+                fontSize: 11.0),
+            text: ForceCalculator.abs(j.fy!).toStringAsFixed(2)));
+        tp.paint(canvas,
+            origin.translate(j.x * sc + 7.2, -j.y * sc + (18 * rxY) - 5 + tlv));
       }
 
       /*var tp = textCache.getOrPerformLayout(TextSpan(
@@ -391,14 +508,18 @@ class TrussPainter extends CustomPainter {
 
       if (j.moment != 0 && j.moment != null) {
         var tp = textCache.getOrPerformLayout(TextSpan(
-            style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold, fontSize: 11.0),
-            text: j.moment.toStringAsFixed(2)));
+            style: TextStyle(
+                color: Colors.blueGrey,
+                fontWeight: FontWeight.bold,
+                fontSize: 11.0),
+            text: j.moment!.toStringAsFixed(2)));
         tp.paint(canvas, origin.translate(j.x * sc + 10, -j.y * sc));
       }
 
       if (j.reactionForce != 0 && j.reactionForce != null) {
         var tp = textCache.getOrPerformLayout(TextSpan(
-            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 11.0),
+            style: TextStyle(
+                color: Colors.red, fontWeight: FontWeight.bold, fontSize: 11.0),
             text: j.reactionForce.toStringAsFixed(2) +
                 "\n" +
                 ((j.reactionAngle / math.pi) * 180).toStringAsFixed(2) +
@@ -423,17 +544,21 @@ class TrussPainter extends CustomPainter {
     if (showAddTruss == 1) {
       canvas.drawRRect(
           RRect.fromRectAndRadius(
-              Rect.fromLTWH(size.width / 2 - (_addPaint1.width + 12) / 2, 240, _addPaint1.width + 12, 30),
+              Rect.fromLTWH(size.width / 2 - (_addPaint1.width + 12) / 2, 240,
+                  _addPaint1.width + 12, 30),
               Radius.circular(5)),
           trussPaint);
-      _addPaint1.paint(canvas, Offset(size.width / 2 - (_addPaint1.width) / 2, 246));
+      _addPaint1.paint(
+          canvas, Offset(size.width / 2 - (_addPaint1.width) / 2, 246));
     } else if (showAddTruss == 2) {
       canvas.drawRRect(
           RRect.fromRectAndRadius(
-              Rect.fromLTWH(size.width / 2 - (_addPaint2.width + 12) / 2, 240, _addPaint2.width + 12, 30),
+              Rect.fromLTWH(size.width / 2 - (_addPaint2.width + 12) / 2, 240,
+                  _addPaint2.width + 12, 30),
               Radius.circular(5)),
           trussPaint);
-      _addPaint2.paint(canvas, Offset(size.width / 2 - (_addPaint2.width) / 2, 246));
+      _addPaint2.paint(
+          canvas, Offset(size.width / 2 - (_addPaint2.width) / 2, 246));
     }
 
     //print('time: ${DateTime.now().millisecondsSinceEpoch - t}');

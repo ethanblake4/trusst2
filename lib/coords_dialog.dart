@@ -18,8 +18,8 @@ class _CoordsDialogState extends State<CoordsDialog> {
   void initState() {
     super.initState();
 
-    _xTextfield.text = Joint.all[widget.id].x.toStringAsFixed(4);
-    _yTextfield.text = Joint.all[widget.id].y.toStringAsFixed(4);
+    _xTextfield.text = Joint.all[widget.id]!.x.toStringAsFixed(4);
+    _yTextfield.text = Joint.all[widget.id]!.y.toStringAsFixed(4);
   }
 
   @override
@@ -51,7 +51,8 @@ class _CoordsDialogState extends State<CoordsDialog> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: TextField(
                       controller: _xTextfield,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(hintText: "x"),
                     ),
                   ),
@@ -65,7 +66,8 @@ class _CoordsDialogState extends State<CoordsDialog> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: TextField(
                       controller: _yTextfield,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(hintText: "y"),
                     ),
                   ),
@@ -79,10 +81,13 @@ class _CoordsDialogState extends State<CoordsDialog> {
             ),
             Align(
               alignment: Alignment.bottomRight,
-              child: FlatButton(
+              child: TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(Offset(double.tryParse(_xTextfield.text) ?? Joint.all[widget.id].x,
-                        double.tryParse(_yTextfield.text) ?? Joint.all[widget.id].y));
+                    Navigator.of(context).pop(Offset(
+                        double.tryParse(_xTextfield.text) ??
+                            Joint.all[widget.id]!.x,
+                        double.tryParse(_yTextfield.text) ??
+                            Joint.all[widget.id]!.y));
                   },
                   child: Text("OK")),
             )

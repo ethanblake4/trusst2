@@ -8,7 +8,7 @@ import 'truss.dart';
 
 class ForceCalculator {
   static var abs = (num x) => x < 0 ? -x : x;
-  static bool debugMode;
+  static bool? debugMode;
 
   /// Calculates moment, reaction forces, and reaction sums
   static void calcForces([bool useFast = false]) {
@@ -76,25 +76,35 @@ class ForceCalculator {
       final cTrusses = j.connectedTrusses;
       for (final trc in cTrusses) {
         final sign = trc.startId == j.id ? 1 : -1;
-        jRow[trc.tempId] = sin(trc.angle) * sign;
-        jRowH[trc.tempId] = cos(trc.angle) * sign;
+        jRow[trc.tempId!] = sin(trc.angle) * sign;
+        jRowH[trc.tempId!] = cos(trc.angle) * sign;
       }
 
       if (j.type == JointType.STANDARD && (j.exAmount ?? 0) > 0) {
-        final vr = (j.exDir == AxisDirection.up ? -1 : j.exDir == AxisDirection.down ? 1 : 0) * j.exAmount;
-        final hz = (j.exDir == AxisDirection.left ? 1 : j.exDir == AxisDirection.right ? -1 : 0) * j.exAmount;
+        final vr = (j.exDir == AxisDirection.up
+                ? -1
+                : j.exDir == AxisDirection.down
+                    ? 1
+                    : 0) *
+            j.exAmount!;
+        final hz = (j.exDir == AxisDirection.left
+                ? 1
+                : j.exDir == AxisDirection.right
+                    ? -1
+                    : 0) *
+            j.exAmount!;
         forceList.add(hz);
         forceList.add(vr);
       } else {
         forceList.add(0.0);
         forceList.add(0.0);
         if (j.type == JointType.ROLLER_H) {
-          jRow[j.tempIdH] = 1;
+          jRow[j.tempIdH!] = 1;
         } else if (j.type == JointType.ROLLER_V) {
-          jRowH[j.tempId] = 1;
+          jRowH[j.tempId!] = 1;
         } else if (j.type == JointType.PINNED) {
-          jRow[j.tempId] = 1;
-          jRowH[j.tempIdH] = 1;
+          jRow[j.tempId!] = 1;
+          jRowH[j.tempIdH!] = 1;
         }
       }
       jointRows.add(jRowH);
@@ -109,7 +119,8 @@ class ForceCalculator {
 
     final lu = LU(mtrix);
 
-    var pmat = mat.map((e) => e.map((ea) => (ea.isNegative ? '' : ' ') + ea.toStringAsFixed(6)));
+    var pmat = mat.map((e) =>
+        e.map((ea) => (ea.isNegative ? '' : ' ') + ea.toStringAsFixed(6)));
 
     //print('det: ${lu.det()}');
     //if(lu.det() < )
@@ -120,31 +131,33 @@ class ForceCalculator {
       print('${mat.length} vs $q');
       print('      ${ss}F');
       pmat.forEach((m) {
-        print('${rowi[o]} $m ${forceList[o].isNegative ? '' : ' '}${forceList[o]}');
+        print(
+            '${rowi[o]} $m ${forceList[o].isNegative ? '' : ' '}${forceList[o]}');
         o++;
       });
     }
 
-    final lusolve = lu.solve(Array2d(forceList.map((f) => Array([f])).toList()));
+    final lusolve =
+        lu.solve(Array2d(forceList.map((f) => Array([f])).toList()));
 
     var i2 = 0;
 
     idList.forEach((_id) {
       // final x = lusolve[i2][0];
       //final y = lusolve[i2 + 1][0];
-      final j = Joint.all[_id];
+      final j = Joint.all[_id]!;
       if (j.type == JointType.ROLLER_H) {
-        j.fy = lusolve[j.tempIdH][0];
+        j.fy = lusolve[j.tempIdH!][0];
       } else if (j.type == JointType.ROLLER_V) {
-        j.fx = lusolve[j.tempId][0];
+        j.fx = lusolve[j.tempId!][0];
       } else if (j.type == JointType.PINNED) {
-        j.fx = lusolve[j.tempIdH][0];
-        j.fy = lusolve[j.tempId][0];
+        j.fx = lusolve[j.tempIdH!][0];
+        j.fy = lusolve[j.tempId!][0];
       }
     });
 
     Truss.all.values.forEach((t) {
-      t.force = lusolve[t.tempId][0];
+      t.force = lusolve[t.tempId!][0];
     });
 
     if (debug) {
@@ -153,7 +166,7 @@ class ForceCalculator {
           .toList()
           .map((e) => e.l)
           .reduce((value, element) => [...value.toList(), element[0]])
-          .map((e) => e.toStringAsFixed(6)));
+          .map((e) => e?.toStringAsFixed(6)));
     }
 
     // Cache the All180 list of joints for each Joint, because it is slow to calculate
@@ -329,13 +342,15 @@ class ForceCalculator {
     final connectsAtStart = t.startId == j.id;
     final j180 = connectsAtStart
         ? t.endJoint.connectedTrusses.where((t2) =>
-            t.dyDx.toStringAsFixed(3) == t2.dyDx.toStringAsFixed(3) && (t.startId != t2.startId || t.endId != t2.endId))
+            t.dyDx.toStringAsFixed(3) == t2.dyDx.toStringAsFixed(3) &&
+            (t.startId != t2.startId || t.endId != t2.endId))
         : t.startJoint.connectedTrusses.where((t2) =>
             t.dyDx.toStringAsFixed(3) == t2.dyDx.toStringAsFixed(3) &&
             (t.startId != t2.startId || t.endId != t2.endId));
     final ll = <Truss>[t];
     if (j180.length == 0) return ll;
-    ll.addAll(j180.toList().expand((t3) => _findAll180(t3, connectsAtStart ? t.endJoint : t.startJoint)));
+    ll.addAll(j180.toList().expand(
+        (t3) => _findAll180(t3, connectsAtStart ? t.endJoint : t.startJoint)));
     return ll;
   }
 }

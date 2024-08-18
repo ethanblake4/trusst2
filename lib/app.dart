@@ -9,7 +9,7 @@ import 'joint.dart';
 import 'truss.dart';
 
 class TrusstHomePage extends StatefulWidget {
-  TrusstHomePage({Key key, this.title}) : super(key: key);
+  TrusstHomePage({super.key, required this.title});
 
   final String title;
 
@@ -19,7 +19,7 @@ class TrusstHomePage extends StatefulWidget {
 
 class _TrusstHomePageState extends State<TrusstHomePage> {
   bool showAngles = false;
-  int selectedJoint;
+  int? selectedJoint;
   bool addTruss = false;
   SnapMode snapMode = SnapMode.GRID;
   bool ortho = false;
@@ -32,6 +32,7 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
           'Trusst',
           style: TextStyle(fontFamily: 'FontinSansSC'),
         ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
         elevation: 0.0,
       ),
       body: LayoutBuilder(builder: (context, constraints) {
@@ -42,7 +43,9 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
                 padding: const EdgeInsets.all(8.0),
                 child: SizedBox(
                   child: ClipRRect(
-                    child: ConstructArea(snapMode, ortho, showAngles, addTruss, selectedJoint, (jointId) {
+                    child: ConstructArea(
+                        snapMode, ortho, showAngles, addTruss, selectedJoint,
+                        (jointId) {
                       setState(() {
                         selectedJoint = jointId;
                       });
@@ -69,7 +72,9 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
                   ),
                   Row(
                     children: <Widget>[
-                      buildStateButton(snapMode == SnapMode.GRID, "Snap", Icons.crop_free, () {
+                      buildStateButton(
+                          snapMode == SnapMode.GRID, "Snap", Icons.crop_free,
+                          () {
                         setState(() {
                           if (snapMode == SnapMode.GRID)
                             snapMode = SnapMode.NONE;
@@ -77,7 +82,8 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
                             snapMode = SnapMode.GRID;
                         });
                       }),
-                      buildStateButton(showAngles, "Angles", Icons.threesixty, () {
+                      buildStateButton(showAngles, "Angles", Icons.threesixty,
+                          () {
                         setState(() {
                           showAngles = !showAngles;
                         });
@@ -85,7 +91,8 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
                       buildStateButton(ortho, "Ortho", Icons.border_inner, () {
                         setState(() {
                           ortho = !ortho;
-                          if (snapMode == SnapMode.PERPENDICULAR) snapMode = SnapMode.NONE;
+                          if (snapMode == SnapMode.PERPENDICULAR)
+                            snapMode = SnapMode.NONE;
                         });
                       }),
                     ],
@@ -102,8 +109,10 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
             addTruss = !addTruss;
           });
         },
+        shape: const CircleBorder(),
         tooltip: 'Add truss',
         child: Icon(addTruss ? Icons.check : Icons.add),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
@@ -123,7 +132,8 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
           scrollDirection: Axis.horizontal,
           shrinkWrap: true,
           children: <Widget>[
-            buildStateButton(snapMode == SnapMode.NEAREST, "Nearest", Icons.adjust, () {
+            buildStateButton(
+                snapMode == SnapMode.NEAREST, "Nearest", Icons.adjust, () {
               setState(() {
                 if (snapMode == SnapMode.NEAREST)
                   snapMode = SnapMode.NONE;
@@ -131,7 +141,8 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
                   snapMode = SnapMode.NEAREST;
               });
             }),
-            buildStateButton(snapMode == SnapMode.PERPENDICULAR, "Right", Icons.title, () {
+            buildStateButton(
+                snapMode == SnapMode.PERPENDICULAR, "Right", Icons.title, () {
               setState(() {
                 if (snapMode == SnapMode.PERPENDICULAR)
                   snapMode = SnapMode.NONE;
@@ -146,7 +157,7 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
       );
     }
     if (selectedJoint != null) {
-      var j = Joint.all[selectedJoint];
+      var j = Joint.all[selectedJoint]!;
       yield Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Text(
@@ -160,28 +171,32 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
           scrollDirection: Axis.horizontal,
           shrinkWrap: true,
           children: <Widget>[
-            buildStateButton(j.type == JointType.STANDARD, "Joint", Icons.fiber_manual_record, () {
+            buildStateButton(j.type == JointType.STANDARD, "Joint",
+                Icons.fiber_manual_record, () {
               if (j.type != JointType.STANDARD)
                 setState(() {
                   j.type = JointType.STANDARD;
                   ForceCalculator.calcForces();
                 });
             }),
-            buildStateButton(j.type == JointType.PINNED, "Pin", Icons.details, () {
+            buildStateButton(j.type == JointType.PINNED, "Pin", Icons.details,
+                () {
               if (j.type != JointType.PINNED)
                 setState(() {
                   j.type = JointType.PINNED;
                   ForceCalculator.calcForces();
                 });
             }),
-            buildStateButton(j.type == JointType.ROLLER_H, "Roll H", Icons.swap_horiz, () {
+            buildStateButton(
+                j.type == JointType.ROLLER_H, "Roll H", Icons.swap_horiz, () {
               if (j.type != JointType.ROLLER_H)
                 setState(() {
                   j.type = JointType.ROLLER_H;
                   ForceCalculator.calcForces();
                 });
             }),
-            buildStateButton(j.type == JointType.ROLLER_V, "Roll V", Icons.swap_vert, () {
+            buildStateButton(
+                j.type == JointType.ROLLER_V, "Roll V", Icons.swap_vert, () {
               if (j.type != JointType.ROLLER_V)
                 setState(() {
                   j.type = JointType.ROLLER_V;
@@ -201,7 +216,7 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
             children: <Widget>[
               buildStateButton(true, "Delete", Icons.delete_forever, () {
                 setState(() {
-                  Joint.all[selectedJoint].delete();
+                  Joint.all[selectedJoint]!.delete();
                   Joint.all.values.toList().forEach((j) {
                     if (j.connectedTrusses.length == 0)
                       j.delete();
@@ -212,24 +227,34 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
                   ForceCalculator.calcForces();
                 });
               }, Colors.red),
-              buildStateButton(Joint.all[selectedJoint].type == JointType.STANDARD, "Force", Icons.assignment_returned,
-                  () async {
-                if (Joint.all[selectedJoint].type != JointType.STANDARD) return;
-                Force force = await showDialog(
+              buildStateButton(
+                  Joint.all[selectedJoint]!.type == JointType.STANDARD,
+                  "Force",
+                  Icons.assignment_returned, () async {
+                if (Joint.all[selectedJoint]!.type != JointType.STANDARD)
+                  return;
+                Force? force = await showDialog(
                     context: context,
                     builder: (context) => ForceDialog(Force(
-                        Joint.all[selectedJoint].exDir ?? AxisDirection.down, Joint.all[selectedJoint].exAmount)));
+                        Joint.all[selectedJoint]!.exDir ?? AxisDirection.down,
+                        Joint.all[selectedJoint]!.exAmount ?? 0)));
                 setState(() {
-                  Joint.all[selectedJoint]
+                  Joint.all[selectedJoint]!
                     ..exDir = force?.direction
                     ..exAmount = force?.intensity;
                   ForceCalculator.calcForces();
                 });
               }, Colors.blueGrey),
-              if (Joint.hitTestMultiple(j.x, j.y, 0.5).where((o) => o.id != j.id).length > 0)
+              if (Joint.hitTestMultiple(j.x, j.y, 0.5)
+                      .where((o) => o.id != j.id)
+                      .length >
+                  0)
                 buildStateButton(true, "Merge", Icons.merge_type, () {
                   setState(() {
-                    Joint.hitTestMultiple(j.x, j.y, 0.5).where((o) => o.id != j.id).toList().forEach((o) {
+                    Joint.hitTestMultiple(j.x, j.y, 0.5)
+                        .where((o) => o.id != j.id)
+                        .toList()
+                        .forEach((o) {
                       o.connectedTrusses.forEach((truss) {
                         truss.delete();
                         if (truss.startId == o.id)
@@ -250,11 +275,13 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
                   });
                 }, Colors.orangeAccent),
               buildStateButton(true, "Coords", Icons.place, () async {
-                Offset o = await showDialog(context: context, builder: (context) => CoordsDialog(selectedJoint));
+                Offset? o = await showDialog(
+                    context: context,
+                    builder: (context) => CoordsDialog(selectedJoint!));
                 if (o != null)
                   setState(() {
-                    Joint.all[selectedJoint].x = o.dx;
-                    Joint.all[selectedJoint].y = o.dy;
+                    Joint.all[selectedJoint]!.x = o.dx;
+                    Joint.all[selectedJoint]!.y = o.dy;
                     ForceCalculator.calcForces();
                   });
               }, Colors.deepOrange),
@@ -265,11 +292,18 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
     }
   }
 
-  Widget buildStateButton(bool can, String text, IconData ic, VoidCallback onTap, [Color color = Colors.lightGreen]) {
+  Widget buildStateButton(
+      bool can, String text, IconData ic, VoidCallback onTap,
+      [Color color = Colors.lightGreen]) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: FlatButton(
-        padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+      child: TextButton(
+        style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all(
+              can ? color : Colors.grey.shade200,
+            ),
+            padding: WidgetStateProperty.all(
+                EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0))),
         child: Row(
           children: <Widget>[
             Icon(
@@ -288,7 +322,6 @@ class _TrusstHomePageState extends State<TrusstHomePage> {
           ],
         ),
         onPressed: onTap,
-        color: can ? color : Colors.grey.shade200,
       ),
     );
   }

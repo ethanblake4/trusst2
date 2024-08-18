@@ -10,7 +10,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Trusst',
-      theme: ThemeData(primarySwatch: Colors.lightGreen, accentColor: Colors.deepOrange),
+      theme: ThemeData.from(
+          colorScheme: ColorScheme(
+              brightness: Brightness.light,
+              primary: Colors.lightGreen,
+              onPrimary: Colors.black,
+              secondary: Colors.orange,
+              onSecondary: Colors.white,
+              error: Colors.red,
+              onError: Colors.white,
+              surface: Colors.grey[100]!,
+              onSurface: Colors.black)),
       home: TrusstHomePage(title: 'Trusst'),
     );
   }

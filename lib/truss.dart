@@ -37,12 +37,14 @@ class Truss {
   }
 
   factory Truss.auto(double startX, double startY, double endX, double endY) =>
-      Truss(Joint(startX, startY, JointType.STANDARD).id, Joint(endX, endY, JointType.STANDARD).id);
+      Truss(Joint(startX, startY, JointType.STANDARD).id,
+          Joint(endX, endY, JointType.STANDARD).id);
 
   factory Truss.joinStart(Joint start, double endX, double endY) =>
       Truss(start.id, Joint(endX, endY, JointType.STANDARD).id);
 
-  Truss chainStart(double endX, double endY) => Truss.joinStart(startJoint, endX, endY);
+  Truss chainStart(double endX, double endY) =>
+      Truss.joinStart(startJoint, endX, endY);
 
   void delete() {
     all.remove(_id);
@@ -51,13 +53,13 @@ class Truss {
   final int _id;
   final int startId;
   final int endId;
-  int tempId;
-  int tempIdH;
-  double force;
+  int? tempId;
+  int? tempIdH;
+  double? force;
 
-  Joint get startJoint => Joint.all[startId];
+  Joint get startJoint => Joint.all[startId]!;
 
-  Joint get endJoint => Joint.all[endId];
+  Joint get endJoint => Joint.all[endId]!;
 
   double get startX => startJoint.x;
 
@@ -71,7 +73,8 @@ class Truss {
 
   double get angleN => math.atan((endY - startY) / endX - startX);
 
-  double angleFrom(Joint j) => startId == j.id ? angle : math.atan2(startY - endY, startX - endX);
+  double angleFrom(Joint j) =>
+      startId == j.id ? angle : math.atan2(startY - endY, startX - endX);
 
   double angleBetween(Truss other) {
     /*if (other.startId == this.startId) {
@@ -88,14 +91,16 @@ class Truss {
       final v2 = Vector([other.endX - other.startX, other.endY - other.startY]);
       return acos(v1.dot(v2) /
           (Offset(this.endX - this.startX, this.endY - this.startY).distance *
-              Offset(other.endX - other.startX, other.endY - other.startY).distance));
+              Offset(other.endX - other.startX, other.endY - other.startY)
+                  .distance));
     } else {
       //return 9;
       final v1 = Vector([this.endX - this.startX, this.endY - this.startY]);
       final v2 = Vector([other.startX - other.endX, other.startY - other.endY]);
       return acos(v1.dot(v2) /
           (Offset(this.endX - this.startX, this.endY - this.startY).distance *
-              Offset(other.endX - other.startX, other.endY - other.startY).distance));
+              Offset(other.endX - other.startX, other.endY - other.startY)
+                  .distance));
     }
   }
 
@@ -113,7 +118,10 @@ class Truss {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Truss && runtimeType == other.runtimeType && startId == other.startId && endId == other.endId;
+      other is Truss &&
+          runtimeType == other.runtimeType &&
+          startId == other.startId &&
+          endId == other.endId;
 
   @override
   int get hashCode => _id;
